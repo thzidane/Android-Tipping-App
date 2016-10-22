@@ -24,7 +24,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.paypal.android.MEP.CheckoutButton;
 import com.paypal.android.MEP.PayPal;
+import com.paypal.android.MEP.PayPalActivity;
+import com.paypal.android.MEP.PayPalAdvancedPayment;
 import com.paypal.android.MEP.PayPalInvoiceData;
+import com.paypal.android.MEP.PayPalReceiverDetails;
 import com.paypal.android.sdk.payments.PayPalConfiguration;
 import com.paypal.android.sdk.payments.PayPalPayment;
 import com.paypal.android.sdk.payments.PayPalService;
@@ -87,14 +90,14 @@ public class MainActivity extends AppCompatActivity {
         //get current user
         final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-        initLibrary();
-
         //start PayPalService
-//        Intent intent = new Intent(this, PayPalService.class);
-//
-//        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
-//
-//        startService(intent);
+        Intent intent = new Intent(this, PayPalService.class);
+
+        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
+
+        startService(intent);
+
+//        initLibrary();
 
         authListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -152,26 +155,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-//    private void showPayPalButton() {
-//
-//        // Generate the PayPal checkout button and save it for later use
-//        PayPal pp = PayPal.getInstance();
-//        launchPayPalButton = pp.getCheckoutButton(this, PayPal.BUTTON_278x43, CheckoutButton.TEXT_PAY);
-//
-//        // The OnClick listener for the checkout button
-//        launchPayPalButton.setOnClickListener(this);
-//
-//        // Add the listener to the layout
-//        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams (Toolbar.LayoutParams.WRAP_CONTENT,
-//                Toolbar.LayoutParams.WRAP_CONTENT);
-//        params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-//        params.bottomMargin = 10;
-//        launchPayPalButton.setLayoutParams(params);
-//        launchPayPalButton.setId(PAYPAL_BUTTON_ID);
-//        ((RelativeLayout) findViewById(R.id.RelativeLayout01)).addView(launchPayPalButton);
-//        ((RelativeLayout) findViewById(R.id.RelativeLayout01)).setGravity(Gravity.CENTER_HORIZONTAL);
-//    }
-
     public void moveToThirdScreen(){
         secondScreenLabel.setVisibility(View.GONE);
 
@@ -181,83 +164,30 @@ public class MainActivity extends AppCompatActivity {
         btnPaymentSubmit.setVisibility(View.VISIBLE);
     }
 
-    public void initLibrary() {
-        PayPal pp = PayPal.getInstance();
-
-        if (pp == null) {  // Test to see if the library is already initialized
-
-            // This main initialization call takes your Context, AppID, and target server
-            pp = PayPal.initWithAppID(this, "AeCGICbrQX9Isd4x1cpFXcc1tDgPk29VsH9xyUZhmBKHmN325abC6pUt8lmoUN_0C5hsXnPoGtnNA2OG", PayPal.ENV_NONE);
-
-            // Required settings:
-
-            // Set the language for the library
-            pp.setLanguage("en_US");
-
-            // Some Optional settings:
-
-            // Sets who pays any transaction fees. Possible values are:
-            // FEEPAYER_SENDER, FEEPAYER_PRIMARYRECEIVER, FEEPAYER_EACHRECEIVER, and FEEPAYER_SECONDARYONLY
-            pp.setFeesPayer(PayPal.FEEPAYER_EACHRECEIVER);
-
-            // true = transaction requires shipping
-            pp.setShippingEnabled(true);
-
-//            _paypalLibraryInit = true;
-        }
-    }
-
     public void getPayment(){
 
-        // Create a basic PayPal payment
-        PayPalPayment payment = new PayPalPayment();
+        //Creating a paypalpayment
+        PayPalPayment payment = new PayPalPayment(new BigDecimal(String.valueOf(paymentAmount)), "USD", "Simplified Coding Fee",
+                PayPalPayment.PAYMENT_INTENT_SALE);
 
-        // Set the currency type
-        payment.setCurrencyType("USD");
+        //Creating Paypal Payment activity intent
+        Intent intent = new Intent(this, PaymentActivity.class);
 
-        // Set the recipient for the payment (can be a phone number)
-        payment.setRecipient("");
+        //putting the paypal configuration to the intent
+        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
 
-        // Set the payment amount, excluding tax and shipping costs
-        payment.setSubtotal(new BigDecimal(paymentAmount));
+        //Puting paypal payment to the intent
+        intent.putExtra(PaymentActivity.EXTRA_PAYMENT, payment);
 
-        // Set the payment type--his can be PAYMENT_TYPE_GOODS,
-        // PAYMENT_TYPE_SERVICE, PAYMENT_TYPE_PERSONAL, or PAYMENT_TYPE_NONE
-        payment.setPaymentType(PayPal.PAYMENT_TYPE_GOODS);
-
-        // PayPalInvoiceData can contain tax and shipping amounts, and an
-        // ArrayList of PayPalInvoiceItem that you can fill out.
-        // These are not required for any transaction.
-        PayPalInvoiceData invoice = new PayPalInvoiceData();
-
-        // Set the tax amount
-        invoice.setTax(new BigDecimal(0.1));
-
+        //Starting the intent activity for result
+        //the request code will be used on the method onActivityResult
+        startActivityForResult(intent, PAYPAL_REQUEST_CODE);
     }
 
-
-//    private void getPayment() {
-//
-//        //Creating a paypalpayment
-//        PayPalPayment payment = new PayPalPayment(new BigDecimal(String.valueOf(paymentAmount)), "USD", "Simplified Coding Fee",
-//                PayPalPayment.PAYMENT_INTENT_SALE);
-//
-//        //Creating Paypal Payment activity intent
-//        Intent intent = new Intent(this, PaymentActivity.class);
-//
-//        //putting the paypal configuration to the intent
-//        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
-//
-//        //Puting paypal payment to the intent
-//        intent.putExtra(PaymentActivity.EXTRA_PAYMENT, payment);
-//
-//        //Starting the intent activity for result
-//        //the request code will be used on the method onActivityResult
-//        startActivityForResult(intent, PAYPAL_REQUEST_CODE);
-//    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        System.out.println("hello world");
         //If the result is from paypal
         if (requestCode == PAYPAL_REQUEST_CODE) {
 
@@ -266,7 +196,9 @@ public class MainActivity extends AppCompatActivity {
                 //Getting the payment confirmation
                 PaymentConfirmation confirm = data.getParcelableExtra(PaymentActivity.EXTRA_RESULT_CONFIRMATION);
 
-                //if confirmation is not null
+                System.out.println("result ok");
+
+//                if confirmation is not null
                 if (confirm != null) {
                     try {
                         //Getting the payment details
@@ -311,12 +243,6 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
-
-//    @Override
-//    protected void onResume() {
-//        super.onResume();
-//        progressBar.setVisibility(View.GONE);
-//    }
 
     @Override
     public void onStart() {

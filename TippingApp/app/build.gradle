@@ -27,5 +27,5 @@ dependencies {
     compile 'com.android.support:design:23.1.1'
     compile 'com.google.firebase:firebase-auth:9.0.2'
     compile 'com.paypal.sdk:paypal-android-sdk:2.14.2'
-    compile files('/Users/haotang/Desktop/work/android/TippingApplication/Android-Tipping-App/TippingApp/libs/PayPal_MPL.jar')
+    compile files('libs/PayPal_MPL.jar')
 }
