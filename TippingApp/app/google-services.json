@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "117024422807",
+    "firebase_url": "https://tippingapp.firebaseio.com",
+    "project_id": "tippingapp",
+    "storage_bucket": "tippingapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:117024422807:android:ee5b82fd6b216e78",
+        "android_client_info": {
+          "package_name": "info.tippingapp.firebase"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "117024422807-83n0n9b7b2agoonji7d5ne8l86q9a6ph.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYJ_f1tKaAul_DTUM2ob5hY-m5PKDyFDk"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
