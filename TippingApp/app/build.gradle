@@ -28,4 +28,5 @@ dependencies {
     compile 'com.google.firebase:firebase-auth:9.0.2'
     compile 'com.paypal.sdk:paypal-android-sdk:2.14.2'
     compile files('libs/PayPal_MPL.jar')
+    compile files('libs/PayPalAndroidSDK-2.8.5.jar')
 }

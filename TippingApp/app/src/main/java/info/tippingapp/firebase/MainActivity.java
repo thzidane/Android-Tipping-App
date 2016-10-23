@@ -2,6 +2,7 @@ package info.tippingapp.firebase;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -52,14 +53,19 @@ public class MainActivity extends AppCompatActivity {
     private String paymentAmount;
 
     //Paypal intent request code to track onActivityResult method
-    public static final int PAYPAL_REQUEST_CODE = 123;
+    public static final int PAYPAL_REQUEST_CODE = 1;
 
     //Paypal Configuration Object
-    private static PayPalConfiguration config = new PayPalConfiguration()
-            // Start with mock environment.  When ready, switch to sandbox (ENVIRONMENT_SANDBOX)
-            // or live (ENVIRONMENT_PRODUCTION)
+    private static PayPalConfiguration paypalConfig=new PayPalConfiguration()
             .environment(PayPalConfiguration.ENVIRONMENT_SANDBOX)
-            .clientId(PayPalConfig.PAYPAL_CLIENT_ID);
+            .clientId(PayPalConfig.PAYPAL_CLIENT_ID)
+            .acceptCreditCards(true)
+            // The following are only used in PayPalFuturePaymentActivity.
+            .merchantName("Code_Crash")
+            .merchantPrivacyPolicyUri(
+                    Uri.parse("https://www.paypal.com/webapps/mpp/ua/privacy-full"))
+            .merchantUserAgreementUri(
+                    Uri.parse("https://www.paypal.com/webapps/mpp/ua/useragreement-full"));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,12 +98,8 @@ public class MainActivity extends AppCompatActivity {
 
         //start PayPalService
         Intent intent = new Intent(this, PayPalService.class);
-
-        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
-
+        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, paypalConfig);
         startService(intent);
-
-//        initLibrary();
 
         authListener = new FirebaseAuth.AuthStateListener() {
             @Override
@@ -151,8 +153,6 @@ public class MainActivity extends AppCompatActivity {
                 getPayment();
             }
         });
-
-
     }
 
     public void moveToThirdScreen(){
@@ -166,54 +166,28 @@ public class MainActivity extends AppCompatActivity {
 
     public void getPayment(){
 
-        //Creating a paypalpayment
-        PayPalPayment payment = new PayPalPayment(new BigDecimal(String.valueOf(paymentAmount)), "USD", "Simplified Coding Fee",
+        PayPalPayment thingToBuy = new PayPalPayment(new BigDecimal(paymentAmount),"USD", "hao.tang.ecust-buyer@gmail.com",
                 PayPalPayment.PAYMENT_INTENT_SALE);
 
-        //Creating Paypal Payment activity intent
-        Intent intent = new Intent(this, PaymentActivity.class);
+        Intent intent = new Intent(MainActivity.this, PaymentActivity.class);
 
-        //putting the paypal configuration to the intent
-        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, config);
+        intent.putExtra(PayPalService.EXTRA_PAYPAL_CONFIGURATION, paypalConfig);
 
-        //Puting paypal payment to the intent
-        intent.putExtra(PaymentActivity.EXTRA_PAYMENT, payment);
+        intent.putExtra(PaymentActivity.EXTRA_PAYMENT, thingToBuy);
 
-        //Starting the intent activity for result
-        //the request code will be used on the method onActivityResult
         startActivityForResult(intent, PAYPAL_REQUEST_CODE);
     }
 
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        System.out.println("hello world");
+
         //If the result is from paypal
         if (requestCode == PAYPAL_REQUEST_CODE) {
 
             //If the result is OK i.e. user has not canceled the payment
             if (resultCode == Activity.RESULT_OK) {
-                //Getting the payment confirmation
-                PaymentConfirmation confirm = data.getParcelableExtra(PaymentActivity.EXTRA_RESULT_CONFIRMATION);
-
-                System.out.println("result ok");
-
-//                if confirmation is not null
-                if (confirm != null) {
-                    try {
-                        //Getting the payment details
-                        String paymentDetails = confirm.toJSONObject().toString(4);
-                        Log.i("paymentExample", paymentDetails);
-
-                        //Starting a new activity for the payment details and also putting the payment details with intent
-                        startActivity(new Intent(this, ConfirmationActivity.class)
-                                .putExtra("PaymentDetails", paymentDetails)
-                                .putExtra("PaymentAmount", paymentAmount));
-
-                    } catch (JSONException e) {
-                        Log.e("paymentExample", "an extremely unlikely failure occurred: ", e);
-                    }
-                }
+                Toast.makeText(getApplicationContext(), "Payment done succesfully ", Toast.LENGTH_LONG).show();
             } else if (resultCode == Activity.RESULT_CANCELED) {
                 Log.i("paymentExample", "The user canceled.");
             } else if (resultCode == PaymentActivity.RESULT_EXTRAS_INVALID) {
